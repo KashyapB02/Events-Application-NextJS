@@ -24,34 +24,40 @@ export default function EventCity(props) {
             <Header />
             <div className="events-cities">
                 <h1 className="heading">Events in {city}</h1>
-                <main className="main">
-                    {data &&
-                        data.map(function (event, id) {
-                            return (
-                                <Link
-                                    key={id}
-                                    href={`/events/${event.city}/${event.id}`}
-                                >
-                                    <div className="event-image-container">
-                                        <span className="event-image">
-                                            <Image
-                                                src={event.image}
-                                                alt={event.id}
-                                                width={600}
-                                                height={600}
-                                            />
-                                        </span>
-                                    </div>
-                                    <div className="event-details">
-                                        <h2 className="title">{event.title}</h2>
-                                        <p className="description">
-                                            {event.description}
-                                        </p>
-                                    </div>
-                                </Link>
-                            );
-                        })}
-                </main>
+                {data.length === 0 ? (
+                    <h2>No data available</h2>
+                ) : (
+                    <main className="main">
+                        {data &&
+                            data.map(function (event, id) {
+                                return (
+                                    <Link
+                                        key={id}
+                                        href={`/events/${event.city}/${event.id}`}
+                                    >
+                                        <div className="event-image-container">
+                                            <span className="event-image">
+                                                <Image
+                                                    src={event.image}
+                                                    alt={event.id}
+                                                    width={600}
+                                                    height={600}
+                                                />
+                                            </span>
+                                        </div>
+                                        <div className="event-details">
+                                            <h2 className="title">
+                                                {event.title}
+                                            </h2>
+                                            <p className="description">
+                                                {event.description}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                    </main>
+                )}
             </div>
             <Footer />
         </>
@@ -59,14 +65,24 @@ export default function EventCity(props) {
 }
 
 export async function getStaticPaths() {
-    const { events_categories } = await import("/data/data.json");
-    const allPaths = events_categories.map(function (categories) {
-        return {
-            params: {
-                city: categories.id.toString(),
-            },
-        };
+    const response = await fetch(process.env.API_HOST + "event-category", {
+        method: "GET",
+        headers: {
+            accept: "application/json",
+        },
     });
+    const data = await response.json();
+
+    let allPaths = [];
+    if (data.success) {
+        allPaths = data.eventCategories.map(function (categories) {
+            return {
+                params: {
+                    city: categories.id.toString(),
+                },
+            };
+        });
+    }
 
     return {
         paths: allPaths,
@@ -75,11 +91,20 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps(context) {
-    const { allEvents } = await import("/data/data.json");
+    const response = await fetch(process.env.API_HOST + "all-events", {
+        method: "GET",
+        headers: {
+            accept: "application/json",
+        },
+    });
+    const data = await response.json();
 
-    const events = allEvents.filter(
-        (event) => event.city === context.params.city
-    );
+    let events = [];
+    if (data.success) {
+        events = data.allEvents.filter(
+            (event) => event.city === context.params.city
+        );
+    }
 
     return {
         props: {

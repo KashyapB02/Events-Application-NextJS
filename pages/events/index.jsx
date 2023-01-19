@@ -20,9 +20,11 @@ export default function Events(props) {
             <Header />
             <div className="events">
                 <h1 className="heading">Events Page</h1>
-                <main className="main">
-                    {data &&
-                        data.map(function (categories, id) {
+                {!data.success ? (
+                    <h2>{data.message}</h2>
+                ) : (
+                    <main className="main">
+                        {data.eventCategories.map(function (categories, id) {
                             return (
                                 <Link
                                     key={id}
@@ -44,7 +46,8 @@ export default function Events(props) {
                                 </Link>
                             );
                         })}
-                </main>
+                    </main>
+                )}
             </div>
             <Footer />
         </>
@@ -52,11 +55,17 @@ export default function Events(props) {
 }
 
 export async function getStaticProps() {
-    const { events_categories } = await import("/data/data.json");
+    const response = await fetch(process.env.API_HOST + "event-category", {
+        method: "GET",
+        headers: {
+            accept: "application/json",
+        },
+    });
+    const data = await response.json();
 
     return {
         props: {
-            data: events_categories,
+            data: data,
         },
     };
 }

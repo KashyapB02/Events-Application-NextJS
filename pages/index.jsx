@@ -7,6 +7,7 @@ import Footer from "@/components/footer";
 
 export default function Home(props) {
     const { data } = props;
+
     return (
         <>
             <Head>
@@ -18,9 +19,11 @@ export default function Home(props) {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <Header />
-            <main className="home">
-                {data &&
-                    data.map(function (categories, id) {
+            {!data.success ? (
+                <h2>{data.message}</h2>
+            ) : (
+                <main className="home">
+                    {data.eventCategories.map(function (categories, id) {
                         return (
                             <Link key={id} href={`/events/${categories.id}`}>
                                 <div className="event-categories">
@@ -44,21 +47,28 @@ export default function Home(props) {
                             </Link>
                         );
                     })}
-                <Link href="/events">
-                    <button className="more-events-btn">More Events</button>
-                </Link>
-            </main>
+                    <Link href="/events">
+                        <button className="more-events-btn">More Events</button>
+                    </Link>
+                </main>
+            )}
             <Footer />
         </>
     );
 }
 
 export async function getServerSideProps(context) {
-    const { events_categories } = await import("/data/data.json");
+    const response = await fetch(process.env.API_HOST + "event-category", {
+        method: "GET",
+        headers: {
+            accept: "application/json",
+        },
+    });
+    const data = await response.json();
 
     return {
         props: {
-            data: events_categories,
+            data: data,
         },
     };
 }

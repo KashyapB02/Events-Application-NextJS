@@ -118,15 +118,25 @@ export default function Event(props) {
 }
 
 export async function getStaticPaths() {
-    const { allEvents } = await import("/data/data.json");
-    const allPaths = allEvents.map(function (event) {
-        return {
-            params: {
-                city: event.city,
-                event: event.id.toString(),
-            },
-        };
+    const response = await fetch(process.env.API_HOST + "all-events", {
+        method: "GET",
+        headers: {
+            accept: "application/json",
+        },
     });
+    const data = await response.json();
+
+    let allPaths = [];
+    if (data.success) {
+        allPaths = data.allEvents.map(function (event) {
+            return {
+                params: {
+                    city: event.city,
+                    event: event.id.toString(),
+                },
+            };
+        });
+    }
 
     return {
         paths: allPaths,
@@ -135,8 +145,16 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps(context) {
-    const { allEvents } = await import("/data/data.json");
-    const event = allEvents.find((event) => event.id === context.params.event);
+    const response = await fetch(process.env.API_HOST + "all-events", {
+        method: "GET",
+        headers: {
+            accept: "application/json",
+        },
+    });
+    const data = await response.json();
+    const event = data.allEvents.find(
+        (event) => event.id === context.params.event
+    );
 
     return {
         props: {

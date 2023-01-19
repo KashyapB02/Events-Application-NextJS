@@ -1,49 +1,48 @@
-import path from "path";
-import fs from "fs";
+import AllEvents from "@/models/AllEvents";
+import connectDB from "@/utils/db";
 
-export default function eventRegistration(req, res) {
+async function eventRegistration(req, res) {
     const { method } = req;
-    const filePath = path.join(process.cwd(), "data", "data.json");
-    const { events_categories, allEvents } = JSON.parse(
-        fs.readFileSync(filePath)
-    );
 
     if (method.toLowerCase() === "post") {
-        if (!allEvents || !(allEvents.length > 0)) {
+        if (req.body.eventId === "" || req.body.email === "") {
+            res.status(400).json({
+                success: false,
+                message: "Event Id & Email are required",
+            });
+
+            return;
+        }
+
+        const event = await AllEvents.find({
+            id: req.body.eventId,
+        });
+
+        if (!event || event.length === 0) {
             res.status(404).send({
                 success: false,
                 message: "No Events Found",
             });
+
+            return;
         }
 
+        let eventData = event[0];
         const { email, eventId } = req.body;
-        const updatedAllEvents = allEvents.map(function (event) {
-            if (event.id === eventId) {
-                if (event.emails_registered.includes(email)) {
-                    res.status(409).json({
-                        success: true,
-                        message: "Email Already Registered for This Event",
-                    });
 
-                    return event;
-                }
+        if (eventData.emails_registered.includes(email)) {
+            res.status(409).json({
+                success: true,
+                message: "Email Already Registered for This Event",
+            });
 
-                return {
-                    ...event,
-                    emails_registered: [...event.emails_registered, email],
-                };
-            }
+            return;
+        }
 
-            return event;
-        });
+        eventData.emails_registered = [...eventData.emails_registered, email];
+        console.log(eventData);
 
-        fs.writeFileSync(
-            filePath,
-            JSON.stringify({
-                events_categories,
-                allEvents: updatedAllEvents,
-            })
-        );
+        await AllEvents.updateOne({ id: eventId }, eventData);
 
         res.status(200).json({
             success: true,
@@ -56,3 +55,5 @@ export default function eventRegistration(req, res) {
         message: "Bad Request",
     });
 }
+
+export default connectDB(eventRegistration);
