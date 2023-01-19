@@ -11,10 +11,9 @@ export default function EventCity(props) {
     return (
         <>
             <Head>
-                <title>
-                    Events in {city[0].toUpperCase() + city.slice(1)} | Events
-                    Application
-                </title>
+                <title>{`Events in ${
+                    city[0].toUpperCase() + city.slice(1)
+                } | Events Application`}</title>
                 <meta
                     name="viewport"
                     content="width=device-width, initial-scale=1"

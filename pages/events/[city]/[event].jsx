@@ -72,7 +72,7 @@ export default function Event(props) {
     return (
         <>
             <Head>
-                <title>{event.title} | Events Application</title>
+                <title>{`${event.title} | Events Application`}</title>
                 <meta
                     name="viewport"
                     content="width=device-width, initial-scale=1"
@@ -125,6 +125,7 @@ export async function getStaticPaths() {
         },
     });
     const data = await response.json();
+    console.log(data);
 
     let allPaths = [];
     if (data.success) {
